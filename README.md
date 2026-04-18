@@ -1,58 +1,58 @@
-# Dashboard Swayog App (React + API + Prisma)
+# Dashboard Swayog App
 
-This folder now contains a frontend app and a backend service with JWT auth and PostgreSQL models.
+Unified React + Vite frontend and Express + Prisma API for Vercel deployment.
 
 ## Structure
 
-- `src/` React + TypeScript frontend
-- `server/` Express + TypeScript backend
-- `server/prisma/schema.prisma` Database schema
+- `src/` frontend application
+- `api/` Vercel function entrypoints for `/api` and `/api/*`
+- `server/src/` shared Express app, routes, and backend utilities
+- `server/prisma/schema.prisma` database schema
 
-## Frontend Setup
+## Local Setup
 
-1. Install frontend packages:
+1. Install dependencies:
    - `npm install`
 2. Copy env values:
    - `copy .env.example .env`
-3. Start frontend:
-   - `npm run dev`
-
-## Backend Setup
-
-1. Go to backend:
-   - `cd server`
-2. Install backend packages:
-   - `npm install`
-3. Copy env values:
-   - `copy .env.example .env`
-4. Generate Prisma client:
+3. Generate Prisma client:
    - `npm run prisma:generate`
-5. Create tables via migration:
-   - `npm run prisma:migrate -- --name init`
-6. Start backend:
+4. Start the frontend:
    - `npm run dev`
+5. Start the API in a second terminal:
+   - `npm run api:dev`
 
-Backend runs at `http://localhost:4000` by default.
+The frontend runs on `http://localhost:5173` and the local API runs on `http://localhost:4000`.
 
-## Auth Endpoints
+## Deployment-Faithful Local Dev
 
-- `POST /api/auth/register` customer self-signup only
-- `POST /api/auth/login` login for any active user
-- `GET /api/auth/me` token validation and user profile
+- Use `vercel dev` to test the Vite SPA, API functions, and rewrite behavior the same way Vercel will serve them.
+- Keep `VITE_API_BASE_URL` empty for same-origin Vercel-style behavior.
+- Set `VITE_API_BASE_URL=http://localhost:4000` only when running the frontend and API as separate local processes.
 
-## Customer Endpoints (admin/super-admin)
+## Database and Prisma
 
-- `GET /api/customers?page=1&limit=10&sort=createdAt&order=desc&search=&zone=`
-- `POST /api/customers`
+- `DATABASE_URL` should use the pooled runtime connection string.
+- `DIRECT_URL` should use the direct connection string for migrations.
+- Root Prisma commands:
+  - `npm run prisma:generate`
+  - `npm run prisma:migrate`
+  - `npm run prisma:seed`
 
-## Frontend Routes
+## Auth and Customer APIs
 
-- `/login`
-- `/register`
-- `/` protected dashboard
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `GET /api/account/profile`
+- `PATCH /api/account/profile`
+- `GET /api/customer/invoices`
+- `POST /api/customer/invoices/:invoiceId/checkout-session`
+- `POST /api/customer/payment-methods/setup-intent`
+- `POST /api/customer/payment-methods/sync`
 
 ## Notes
 
-- Role policy follows PRD direction: self-signup creates only `CUSTOMER` role.
-- Admin and other roles should be created by privileged backend workflows.
-# Swayog-360
+- Account settings and customer billing address stay synchronized through the shared account profile model.
+- Stripe Checkout handles invoice payment, and Stripe Setup Intents handle saved cards.
+- Deep links are handled by `vercel.json`, while `/api/*` stays on the exported Express app.

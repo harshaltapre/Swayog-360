@@ -40,21 +40,3 @@ export function ProtectedRoute({ children, pageId, requiredRoles }: ProtectedRou
 
   return <>{children}</>;
 }
-
-/**
- * Access Control HOC
- * Wraps a component to add role-based access protection
- */
-export function withAccessControl<P extends object>(
-  Component: React.ComponentType<P>,
-  pageId: string,
-  requiredRoles?: Role[]
-) {
-  return function AccessControlledComponent(props: P) {
-    return (
-      <ProtectedRoute pageId={pageId} requiredRoles={requiredRoles}>
-        <Component {...props} />
-      </ProtectedRoute>
-    );
-  };
-}

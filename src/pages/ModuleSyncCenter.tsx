@@ -8,7 +8,8 @@ type SyncStatus = {
   counts: Record<string, number>;
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
+const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const API_BASE_URL = rawApiBaseUrl ? rawApiBaseUrl.replace(/\/$/, '') : '';
 
 export default function ModuleSyncCenter() {
   const [status, setStatus] = useState<SyncStatus | null>(null);

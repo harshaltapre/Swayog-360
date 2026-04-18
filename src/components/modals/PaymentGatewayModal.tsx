@@ -4,7 +4,6 @@ import { hasStripePublishableKey, stripePromise } from '../../lib/stripe';
 import { createSetupIntent, syncPaymentMethod } from '../../utils/api';
 
 interface PaymentGatewayModalProps {
-  isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -101,28 +100,19 @@ function PaymentMethodForm({ onClose, onSuccess }: PaymentMethodFormProps) {
   );
 }
 
-export default function PaymentGatewayModal({ isOpen, onClose, onSuccess }: PaymentGatewayModalProps) {
+export default function PaymentGatewayModal({ onClose, onSuccess }: PaymentGatewayModalProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(hasStripePublishableKey);
+  const [error, setError] = useState<string | null>(
+    hasStripePublishableKey ? null : 'Missing VITE_STRIPE_PUBLISHABLE_KEY. Add it to the frontend environment before saving cards.'
+  );
 
   useEffect(() => {
-    if (!isOpen) {
-      setClientSecret(null);
-      setError(null);
-      setLoading(false);
-      return;
-    }
-
     if (!hasStripePublishableKey) {
-      setError('Missing VITE_STRIPE_PUBLISHABLE_KEY. Add it to the frontend environment before saving cards.');
       return;
     }
 
     let active = true;
-    setLoading(true);
-    setError(null);
-    setClientSecret(null);
 
     void createSetupIntent()
       .then((response) => {
@@ -153,11 +143,7 @@ export default function PaymentGatewayModal({ isOpen, onClose, onSuccess }: Paym
     return () => {
       active = false;
     };
-  }, [isOpen]);
-
-  if (!isOpen) {
-    return null;
-  }
+  }, []);
 
   return (
     <>

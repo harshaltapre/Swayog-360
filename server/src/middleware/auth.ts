@@ -1,3 +1,5 @@
+import "../env";
+
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { Role } from "@prisma/client";
@@ -8,7 +10,9 @@ type JwtPayload = {
   email: string;
 };
 
-const secret = process.env.JWT_SECRET ?? "dev_jwt_secret";
+function getJwtSecret() {
+  return process.env.JWT_SECRET ?? "dev_jwt_secret";
+}
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const authorization = req.headers.authorization;
@@ -20,7 +24,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   const token = authorization.replace("Bearer ", "").trim();
 
   try {
-    const payload = jwt.verify(token, secret) as JwtPayload;
+    const payload = jwt.verify(token, getJwtSecret()) as JwtPayload;
     req.user = { id: payload.sub, role: payload.role, email: payload.email };
     next();
   } catch {

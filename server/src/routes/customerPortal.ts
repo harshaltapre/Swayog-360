@@ -1,6 +1,6 @@
 import { AppointmentStatus, InvoiceStatus, Priority, Role, ServiceRequestStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { Router } from "express";
+import { Router, type Request } from "express";
 import { z } from "zod";
 import { createAppointmentCode, createCustomerActivity, createCustomerNotification, createServiceRequestCode, getCustomerByUserId, serializeProfile } from "../lib/customerPortal";
 import { prisma } from "../lib/prisma";
@@ -143,6 +143,22 @@ async function upsertStripePaymentMethod(customerId: string, paymentMethodId: st
   });
 
   return upserted;
+}
+
+function resolveAppBaseUrl(req: Request) {
+  const forwardedHost = req.get("x-forwarded-host");
+  const forwardedProto = req.get("x-forwarded-proto") ?? req.protocol;
+
+  if (forwardedHost && forwardedProto) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  const host = req.get("host");
+  if (host) {
+    return `${req.protocol}://${host}`;
+  }
+
+  return process.env.APP_BASE_URL ?? process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
 }
 
 customerPortalRouter.use(requireAuth, requireRole([Role.CUSTOMER]));
@@ -621,7 +637,7 @@ customerPortalRouter.post("/invoices/:invoiceId/checkout-session", async (req, r
 
     const stripeCustomerId = await ensureStripeCustomer(customer.id);
     const stripe = getStripeClient();
-    const appBaseUrl = process.env.APP_BASE_URL ?? process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
+    const appBaseUrl = resolveAppBaseUrl(req);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",

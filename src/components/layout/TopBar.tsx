@@ -9,10 +9,6 @@ export default function TopBar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  if (!user) return null;
-
-  const roleLabel = ROLE_LABELS[user.role];
-
   // Apply dark mode to document root
   React.useEffect(() => {
     if (darkMode) {
@@ -23,6 +19,10 @@ export default function TopBar() {
       localStorage.setItem('swayog-dark-mode', 'false');
     }
   }, [darkMode]);
+
+  if (!user) return null;
+
+  const roleLabel = ROLE_LABELS[user.role];
 
   // Generate breadcrumb from path
   const pathParts = location.pathname.split('/').filter(Boolean);

@@ -31,10 +31,8 @@ async function ensureDatabase() {
 
   if (existing.rowCount === 0) {
     await client.query(`CREATE DATABASE "${databaseName}"`);
-    // eslint-disable-next-line no-console
     console.log(`Created database "${databaseName}".`);
   } else {
-    // eslint-disable-next-line no-console
     console.log(`Database "${databaseName}" already exists.`);
   }
 
@@ -42,7 +40,6 @@ async function ensureDatabase() {
 }
 
 ensureDatabase().catch((error) => {
-  // eslint-disable-next-line no-console
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });

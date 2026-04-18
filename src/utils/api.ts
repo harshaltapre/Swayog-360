@@ -32,7 +32,7 @@ export interface SignupData extends LoginCredentials {
   role?: Role;
 }
 
-export interface SignupResponse extends LoginResponse {}
+export type SignupResponse = LoginResponse;
 
 export interface ServiceRequestPayload {
   title: string;
@@ -74,7 +74,8 @@ export interface PasswordPayload {
   confirmPassword: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const API_BASE_URL = rawApiBaseUrl ? rawApiBaseUrl.replace(/\/$/, '') : '';
 
 function normalizeRole(role: string): Role {
   const normalized = role.toLowerCase();
@@ -115,10 +116,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch {
+    const base = API_BASE_URL || window.location.origin;
+    throw new Error(`Unable to reach API at ${base}. Start backend with "npm run api:dev" or "npm run dev:full".`);
+  }
 
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const payload = isJson ? await response.json() : null;

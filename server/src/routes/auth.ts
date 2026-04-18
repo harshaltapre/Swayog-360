@@ -1,3 +1,5 @@
+import "../env";
+
 import { Role } from "@prisma/client";
 import { Router } from "express";
 import bcrypt from "bcryptjs";
@@ -9,8 +11,13 @@ import { requireAuth } from "../middleware/auth";
 
 export const authRouter = Router();
 
-const secret: jwt.Secret = process.env.JWT_SECRET ?? "dev_jwt_secret";
-const jwtExpires = (process.env.JWT_EXPIRES_IN ?? "1d") as jwt.SignOptions["expiresIn"];
+function getJwtSecret(): jwt.Secret {
+  return process.env.JWT_SECRET ?? "dev_jwt_secret";
+}
+
+function getJwtExpiresIn(): jwt.SignOptions["expiresIn"] {
+  return (process.env.JWT_EXPIRES_IN ?? "1d") as jwt.SignOptions["expiresIn"];
+}
 
 const registerSchema = z.object({
   name: z.string().min(2).max(100),
@@ -27,10 +34,10 @@ const loginSchema = z.object({
 function signToken(input: { id: string; role: Role; email: string }) {
   const options: jwt.SignOptions = {
     subject: input.id,
-    expiresIn: jwtExpires
+    expiresIn: getJwtExpiresIn()
   };
 
-  return jwt.sign({ role: input.role, email: input.email }, secret, options);
+  return jwt.sign({ role: input.role, email: input.email }, getJwtSecret(), options);
 }
 
 authRouter.post("/register", async (req, res) => {

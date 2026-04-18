@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { useAuthStore } from '../../store';
 
 /**
  * Super Admin - System Infrastructure Management
  * Enterprise-grade system controls for monitoring, maintenance, and governance
  */
 export default function SystemControlsPage() {
-  const { user: _user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('System');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [selectedRole, setSelectedRole] = useState('Finance Department (FD-01)');

@@ -1,6 +1,5 @@
 import { InvoiceStatus, PaymentTransactionStatus } from "@prisma/client";
 import { Router } from "express";
-import Stripe from "stripe";
 import { createCustomerActivity, createCustomerNotification } from "../lib/customerPortal";
 import { prisma } from "../lib/prisma";
 import { getStripeClient, isStripeConfigured } from "../lib/stripe";

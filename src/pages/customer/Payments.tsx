@@ -64,7 +64,15 @@ export default function PaymentsPage() {
   const [searchParams] = useSearchParams();
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [checkoutInvoiceId, setCheckoutInvoiceId] = useState<string | null>(null);
-  const [pageMessage, setPageMessage] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const checkoutState = searchParams.get('checkout');
+  const checkoutMessage =
+    checkoutState === 'success'
+      ? 'Stripe checkout completed. Refreshing your invoice status...'
+      : checkoutState === 'cancelled'
+        ? 'Stripe checkout was cancelled. Your invoice remains unpaid.'
+        : null;
+  const pageMessage = actionMessage ?? checkoutMessage;
 
   const invoicesQuery = useQuery({
     queryKey: ['customer-invoices'],
@@ -77,26 +85,19 @@ export default function PaymentsPage() {
   });
 
   useEffect(() => {
-    const checkoutState = searchParams.get('checkout');
     if (!checkoutState) {
       return;
     }
 
-    if (checkoutState === 'success') {
-      setPageMessage('Stripe checkout completed. Refreshing your invoice status...');
-    } else if (checkoutState === 'cancelled') {
-      setPageMessage('Stripe checkout was cancelled. Your invoice remains unpaid.');
-    }
-
     void queryClient.invalidateQueries({ queryKey: ['customer-invoices'] });
-  }, [queryClient, searchParams]);
+  }, [checkoutState, queryClient]);
 
   const checkoutMutation = useMutation({
     mutationFn: createInvoiceCheckoutSession,
     onSuccess: ({ url }) => {
       if (!url) {
         setCheckoutInvoiceId(null);
-        setPageMessage('Stripe did not return a checkout URL for this invoice.');
+        setActionMessage('Stripe did not return a checkout URL for this invoice.');
         return;
       }
 
@@ -104,18 +105,18 @@ export default function PaymentsPage() {
     },
     onError: (error) => {
       setCheckoutInvoiceId(null);
-      setPageMessage(error instanceof Error ? error.message : 'Unable to start Stripe Checkout.');
+      setActionMessage(error instanceof Error ? error.message : 'Unable to start Stripe Checkout.');
     },
   });
 
   const handleCheckout = (invoiceId: string) => {
-    setPageMessage(null);
+    setActionMessage(null);
     setCheckoutInvoiceId(invoiceId);
     checkoutMutation.mutate(invoiceId);
   };
 
   const handlePaymentMethodSuccess = () => {
-    setPageMessage('Payment method saved successfully.');
+    setActionMessage('Payment method saved successfully.');
     void queryClient.invalidateQueries({ queryKey: ['customer-invoices'] });
   };
 
@@ -341,11 +342,9 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      <PaymentGatewayModal
-        isOpen={paymentModalOpen}
-        onClose={() => setPaymentModalOpen(false)}
-        onSuccess={handlePaymentMethodSuccess}
-      />
+      {paymentModalOpen ? (
+        <PaymentGatewayModal onClose={() => setPaymentModalOpen(false)} onSuccess={handlePaymentMethodSuccess} />
+      ) : null}
     </PageContainer>
   );
 }

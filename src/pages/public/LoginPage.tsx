@@ -7,7 +7,7 @@ import type { Role } from '../../types';
 
 // Demo credentials for database sync
 const DEMO_USERS = {
-  super_admin: { email: 'admin@swayog.energy', password: 'admin123' },
+  super_admin: { email: 'harshaltapre27@gamil.com', password: 'harshal' },
   admin: { email: 'amit.verma@swayog.energy', password: 'admin123' },
   employee: { email: 'ravi.kumar@swayog.energy', password: 'emp123' },
   partner: { email: 'rajesh@energysolutions.com', password: 'partner123' },

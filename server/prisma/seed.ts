@@ -13,8 +13,10 @@ function daysAgo(days: number) {
 }
 
 async function main() {
+  const superAdminEmail = "harshaltapre27@gamil.com";
+
   const passwordHashes = await Promise.all([
-    bcrypt.hash("admin123", 10),
+    bcrypt.hash("harshal", 10),
     bcrypt.hash("admin123", 10),
     bcrypt.hash("partner123", 10),
     bcrypt.hash("emp123", 10),
@@ -24,16 +26,16 @@ async function main() {
   const [superAdminPassword, adminPassword, partnerPassword, employeePassword, customerPassword] = passwordHashes;
 
   const superAdmin = await prisma.user.upsert({
-    where: { email: "admin@swayog.energy" },
+    where: { email: superAdminEmail },
     update: {
-      name: "Amit Verma",
+      name: "Harshal Tapre",
       role: Role.SUPER_ADMIN,
       password: superAdminPassword,
       phone: "9876543210"
     },
     create: {
-      email: "admin@swayog.energy",
-      name: "Amit Verma",
+      email: superAdminEmail,
+      name: "Harshal Tapre",
       role: Role.SUPER_ADMIN,
       password: superAdminPassword,
       phone: "9876543210"
@@ -487,13 +489,11 @@ async function main() {
     }
   });
 
-  // eslint-disable-next-line no-console
   console.log("Seeded demo users and customer portal data.");
 }
 
 main()
   .catch((error) => {
-    // eslint-disable-next-line no-console
     console.error(error);
     process.exit(1);
   })

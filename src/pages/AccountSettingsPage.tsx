@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import type { AccountProfile, BillingAddress, NotificationPreferences } from '../types';
@@ -99,12 +99,6 @@ export default function AccountSettingsPage() {
     queryFn: fetchAccountProfile,
   });
 
-  useEffect(() => {
-    if (profileQuery.data?.profile) {
-      setFormState(buildFormState(profileQuery.data.profile));
-    }
-  }, [profileQuery.data?.profile]);
-
   const profileMutation = useMutation({
     mutationFn: (payload: ProfilePayload) => updateAccountProfile(payload),
     onSuccess: ({ profile }) => {
@@ -115,7 +109,7 @@ export default function AccountSettingsPage() {
         phone: profile.phone,
         avatarUrl: profile.avatarUrl,
       });
-      setFormState(buildFormState(profile));
+      setFormState(null);
       setProfileMessage('Account settings saved successfully.');
     },
     onError: (error) => {
@@ -135,26 +129,32 @@ export default function AccountSettingsPage() {
   });
 
   const profile = profileQuery.data?.profile ?? null;
+  const baseFormState = profile ? buildFormState(profile) : null;
+  const resolvedFormState = formState ?? baseFormState;
   const isCustomer = profile?.role === 'customer';
+
+  const updateFormState = (updater: (current: ProfileFormState) => ProfileFormState) => {
+    if (!baseFormState) {
+      return;
+    }
+
+    setFormState((prev) => updater(prev ?? baseFormState));
+  };
 
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormState((prev) => (prev ? { ...prev, [name]: value } : prev));
+    updateFormState((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleBillingChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormState((prev) =>
-      prev
-        ? {
-            ...prev,
-            billingAddress: {
-              ...prev.billingAddress,
-              [name]: value,
-            },
-          }
-        : prev
-    );
+    updateFormState((prev) => ({
+      ...prev,
+      billingAddress: {
+        ...prev.billingAddress,
+        [name]: value,
+      },
+    }));
   };
 
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -163,21 +163,17 @@ export default function AccountSettingsPage() {
   };
 
   const handleNotificationToggle = (key: keyof NotificationPreferences) => {
-    setFormState((prev) =>
-      prev
-        ? {
-            ...prev,
-            notificationPreferences: {
-              ...prev.notificationPreferences,
-              [key]: !prev.notificationPreferences[key],
-            },
-          }
-        : prev
-    );
+    updateFormState((prev) => ({
+      ...prev,
+      notificationPreferences: {
+        ...prev.notificationPreferences,
+        [key]: !prev.notificationPreferences[key],
+      },
+    }));
   };
 
   const handleTwoFactorToggle = () => {
-    setFormState((prev) => (prev ? { ...prev, twoFactorEnabled: !prev.twoFactorEnabled } : prev));
+    updateFormState((prev) => ({ ...prev, twoFactorEnabled: !prev.twoFactorEnabled }));
   };
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -190,7 +186,7 @@ export default function AccountSettingsPage() {
     reader.onload = (event) => {
       const result = event.target?.result;
       if (typeof result === 'string') {
-        setFormState((prev) => (prev ? { ...prev, avatarUrl: result } : prev));
+        updateFormState((prev) => ({ ...prev, avatarUrl: result }));
       }
     };
     reader.readAsDataURL(file);
@@ -201,25 +197,25 @@ export default function AccountSettingsPage() {
       return;
     }
 
-    setFormState(buildFormState(profile));
+    setFormState(null);
     setProfileMessage(null);
   };
 
   const handleProfileSave = () => {
-    if (!formState) {
+    if (!resolvedFormState) {
       return;
     }
 
     setProfileMessage(null);
     profileMutation.mutate({
-      name: formState.name.trim(),
-      email: formState.email.trim(),
-      phone: formState.phone.trim(),
-      avatarUrl: formState.avatarUrl,
-      language: formState.language,
-      twoFactorEnabled: formState.twoFactorEnabled,
-      notificationPreferences: formState.notificationPreferences,
-      billingAddress: isCustomer ? formState.billingAddress : undefined,
+      name: resolvedFormState.name.trim(),
+      email: resolvedFormState.email.trim(),
+      phone: resolvedFormState.phone.trim(),
+      avatarUrl: resolvedFormState.avatarUrl,
+      language: resolvedFormState.language,
+      twoFactorEnabled: resolvedFormState.twoFactorEnabled,
+      notificationPreferences: resolvedFormState.notificationPreferences,
+      billingAddress: isCustomer ? resolvedFormState.billingAddress : undefined,
     });
   };
 
@@ -256,7 +252,7 @@ export default function AccountSettingsPage() {
     );
   }
 
-  if (!formState || !profile) {
+  if (!resolvedFormState || !profile) {
     return null;
   }
 
@@ -285,11 +281,11 @@ export default function AccountSettingsPage() {
               <div className="flex flex-col items-center gap-4">
                 <div className="relative group">
                   <div className="h-32 w-32 rounded bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 overflow-hidden">
-                    {formState.avatarUrl ? (
-                      <img alt="Profile" className="w-full h-full object-cover" src={formState.avatarUrl} />
+                    {resolvedFormState.avatarUrl ? (
+                      <img alt="Profile" className="w-full h-full object-cover" src={resolvedFormState.avatarUrl} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-blue-900 dark:text-blue-400">
-                        {formState.name.charAt(0).toUpperCase()}
+                        {resolvedFormState.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
@@ -325,7 +321,7 @@ export default function AccountSettingsPage() {
                   <input
                     type="text"
                     name="name"
-                    value={formState.name}
+                    value={resolvedFormState.name}
                     onChange={handleProfileChange}
                     className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                   />
@@ -335,9 +331,9 @@ export default function AccountSettingsPage() {
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                     Language Preference
                   </label>
-                  <select
+                    <select
                     name="language"
-                    value={formState.language}
+                    value={resolvedFormState.language}
                     onChange={handleProfileChange}
                     className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                   >
@@ -357,7 +353,7 @@ export default function AccountSettingsPage() {
                   <input
                     type="email"
                     name="email"
-                    value={formState.email}
+                    value={resolvedFormState.email}
                     onChange={handleProfileChange}
                     className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                   />
@@ -370,7 +366,7 @@ export default function AccountSettingsPage() {
                   <input
                     type="tel"
                     name="phone"
-                    value={formState.phone}
+                    value={resolvedFormState.phone}
                     onChange={handleProfileChange}
                     className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                   />
@@ -526,7 +522,7 @@ export default function AccountSettingsPage() {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formState.twoFactorEnabled}
+                      checked={resolvedFormState.twoFactorEnabled}
                       onChange={handleTwoFactorToggle}
                       className="sr-only peer"
                     />
@@ -534,7 +530,7 @@ export default function AccountSettingsPage() {
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {formState.twoFactorEnabled
+                  {resolvedFormState.twoFactorEnabled
                     ? 'Two-factor authentication is enabled for your account.'
                     : 'Enable two-factor authentication for stronger account protection.'}
                 </p>
@@ -566,7 +562,7 @@ export default function AccountSettingsPage() {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formState.notificationPreferences[key as keyof NotificationPreferences]}
+                      checked={resolvedFormState.notificationPreferences[key as keyof NotificationPreferences]}
                       onChange={() => handleNotificationToggle(key as keyof NotificationPreferences)}
                       className="sr-only peer"
                     />
@@ -594,7 +590,7 @@ export default function AccountSettingsPage() {
                   <input
                     type="text"
                     name="line1"
-                    value={formState.billingAddress.line1}
+                    value={resolvedFormState.billingAddress.line1}
                     onChange={handleBillingChange}
                     className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                   />
@@ -607,7 +603,7 @@ export default function AccountSettingsPage() {
                   <input
                     type="text"
                     name="line2"
-                    value={formState.billingAddress.line2 ?? ''}
+                    value={resolvedFormState.billingAddress.line2 ?? ''}
                     onChange={handleBillingChange}
                     className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                   />
@@ -621,7 +617,7 @@ export default function AccountSettingsPage() {
                     <input
                       type="text"
                       name="city"
-                      value={formState.billingAddress.city}
+                      value={resolvedFormState.billingAddress.city}
                       onChange={handleBillingChange}
                       className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                     />
@@ -634,7 +630,7 @@ export default function AccountSettingsPage() {
                     <input
                       type="text"
                       name="state"
-                      value={formState.billingAddress.state}
+                      value={resolvedFormState.billingAddress.state}
                       onChange={handleBillingChange}
                       className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                     />
@@ -647,7 +643,7 @@ export default function AccountSettingsPage() {
                     <input
                       type="text"
                       name="postalCode"
-                      value={formState.billingAddress.postalCode}
+                      value={resolvedFormState.billingAddress.postalCode}
                       onChange={handleBillingChange}
                       className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                     />
@@ -660,7 +656,7 @@ export default function AccountSettingsPage() {
                     <input
                       type="text"
                       name="country"
-                      value={formState.billingAddress.country}
+                      value={resolvedFormState.billingAddress.country}
                       onChange={handleBillingChange}
                       className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-sm px-4 py-2.5 rounded focus:ring-2 focus:ring-blue-900 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
                     />
