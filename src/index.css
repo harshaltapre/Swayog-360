@@ -1,0 +1,282 @@
+@import "tailwindcss";
+:root {
+    font-family: Inter, "Segoe UI", sans-serif;
+    color: #1a202c;
+    background: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+a {
+    color: #1A365D;
+}
+
+.auth-layout {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(26, 54, 93, 0.1);
+}
+
+.auth-card h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    color: #1A365D;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.auth-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: #1a202c;
+}
+
+.auth-form input {
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font: inherit;
+}
+
+.auth-form button,
+.dashboard-header button {
+    border: 0;
+    border-radius: 6px;
+    background: #1A365D;
+    color: #fff;
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auth-form button:hover {
+    background: #0f1f3a;
+}
+
+.auth-form button:disabled {
+    opacity: 0.75;
+    cursor: progress;
+}
+
+.eyebrow {
+    margin: 0 0 6px;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.muted {
+    color: #64748B;
+    margin: 6px 0 0;
+}
+
+.small {
+    font-size: 0.85rem;
+}
+
+.error-text {
+    color: #b91c1c;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.dashboard-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 1.65rem;
+    color: #1A365D;
+}
+
+.panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(26, 54, 93, 0.1);
+}
+
+.panel h2 {
+    margin: 0;
+    color: #1A365D;
+}
+
+.panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+}
+
+th {
+    color: #1A365D;
+    font-weight: 600;
+}
+
+
+/* Animations */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide-in-up {
+    animation: slideInUp 0.3s ease-in-out;
+}
+
+.animate-slide-in-down {
+    animation: slideInDown 0.3s ease-in-out;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+.stagger-children>* {
+    animation: slideInUp 0.3s ease-in-out backwards;
+}
+
+.stagger-children> :nth-child(1) {
+    animation-delay: 0s;
+}
+
+.stagger-children> :nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.stagger-children> :nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.stagger-children> :nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.stagger-children> :nth-child(5) {
+    animation-delay: 0.4s;
+}
+
+.stagger-children> :nth-child(6) {
+    animation-delay: 0.5s;
+}
+
+
+/* Material Icons Override */
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+}
+
+
+/* Scrollbar Styling */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f4f7fb;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
